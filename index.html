@@ -1,0 +1,3038 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPACE COMMAND // SPACECRAFT CONTROL</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    user-select: none;
+}
+
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background:
+        radial-gradient(circle at 50% 40%, #102333 0%, #050b11 48%, #010306 100%);
+    color: #dffaff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body.shake-light {
+    animation: shakeLight .09s infinite;
+}
+
+body.shake-heavy {
+    animation: shakeHeavy .055s infinite;
+}
+
+@keyframes shakeLight {
+    0% { transform: translate(0,0) rotate(0deg); }
+    25% { transform: translate(-2px,1px) rotate(-.2deg); }
+    50% { transform: translate(2px,-1px) rotate(.2deg); }
+    75% { transform: translate(-1px,-2px) rotate(-.15deg); }
+    100% { transform: translate(1px,2px) rotate(.15deg); }
+}
+
+@keyframes shakeHeavy {
+    0% { transform: translate(0,0) rotate(0deg); }
+    20% { transform: translate(-5px,3px) rotate(-.5deg); }
+    40% { transform: translate(4px,-4px) rotate(.6deg); }
+    60% { transform: translate(-4px,-2px) rotate(-.4deg); }
+    80% { transform: translate(3px,4px) rotate(.5deg); }
+    100% { transform: translate(-2px,1px) rotate(-.2deg); }
+}
+
+/* HEADER */
+
+header {
+    height: 64px;
+    border-bottom: 1px solid #28495d;
+    background: rgba(2,8,14,.96);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 22px;
+}
+
+.logo {
+    font-size: 21px;
+    font-weight: bold;
+    letter-spacing: 4px;
+}
+
+.logo span {
+    color: #31d9ff;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 11px;
+    letter-spacing: 2px;
+}
+
+.status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #35ff91;
+    box-shadow: 0 0 12px #35ff91;
+}
+
+.status-dot.red {
+    background: #ff5555;
+    box-shadow: 0 0 12px #ff5555;
+}
+
+/* MAIN */
+
+.main {
+    height: calc(100vh - 64px);
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 215px minmax(400px,1fr) 235px;
+    gap: 12px;
+}
+
+.panel {
+    background: rgba(5,14,22,.94);
+    border: 1px solid #254658;
+    border-radius: 7px;
+    min-height: 0;
+}
+
+.title {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-bottom: 1px solid #254658;
+    color: #39dfff;
+    font-size: 10px;
+    letter-spacing: 2px;
+}
+
+/* CONTROLS */
+
+.controls {
+    padding: 10px;
+}
+
+button {
+    width: 100%;
+    height: 43px;
+    margin-bottom: 7px;
+    border-radius: 5px;
+    border: 1px solid #31596d;
+    background: linear-gradient(#0c1c28,#07121a);
+    color: #d9f8ff;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: .15s;
+}
+
+button:hover {
+    background: #103244;
+    border-color: #35dcff;
+    box-shadow: 0 0 13px rgba(0,210,255,.2);
+}
+
+button:active {
+    transform: scale(.97);
+}
+
+button.active {
+    border-color: #35dcff;
+    color: #50e6ff;
+    background: #10394b;
+}
+
+.launch {
+    height: 58px;
+    border-color: #3e765d;
+    color: #63ffae;
+    background: linear-gradient(#0b3023,#061a14);
+}
+
+.landing {
+    height: 58px;
+    border-color: #80672f;
+    color: #ffe27a;
+    background: linear-gradient(#302711,#181208);
+}
+
+.fuel-button {
+    border-color: #357a91;
+    color: #67eaff;
+}
+
+.emergency {
+    color: #ff8c8c;
+    border-color: #753c3c;
+}
+
+/* DESTINATION */
+
+.destination-box {
+    padding: 10px;
+    border-bottom: 1px solid #254658;
+}
+
+.destination-label {
+    display: block;
+    color: #718f9c;
+    font-size: 8px;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+}
+
+.destination-select {
+    width: 100%;
+    height: 39px;
+    padding: 0 9px;
+    border-radius: 5px;
+    border: 1px solid #31596d;
+    background: #07141d;
+    color: #d9f8ff;
+    outline: none;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.destination-select:focus {
+    border-color: #35dcff;
+    box-shadow: 0 0 12px rgba(0,210,255,.15);
+}
+
+/* CENTER */
+
+.center {
+    display: flex;
+    flex-direction: column;
+}
+
+.display-area {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+    background: #02090e;
+}
+
+/* RADAR */
+
+.radar {
+    position: absolute;
+    width: min(420px,70vh,70vw);
+    aspect-ratio: 1;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    border-radius: 50%;
+
+    background:
+    radial-gradient(circle,
+        transparent 0 18%,
+        rgba(42,215,255,.12) 18% 18.4%,
+        transparent 18.4% 38%,
+        rgba(42,215,255,.10) 38% 38.4%,
+        transparent 38.4% 58%,
+        rgba(42,215,255,.10) 58% 58.4%,
+        transparent 58.4% 78%,
+        rgba(42,215,255,.10) 78% 78.4%,
+        transparent 78.4%
+    ),
+    repeating-conic-gradient(
+        from 0deg,
+        rgba(40,210,255,.15) 0deg 1deg,
+        transparent 1deg 30deg
+    ),
+    #06151b;
+
+    border: 2px solid #26798b;
+
+    box-shadow:
+        0 0 30px rgba(0,210,255,.17),
+        inset 0 0 50px rgba(0,200,255,.1);
+}
+
+.radar.scan::before {
+    content: "";
+    position: absolute;
+    width: 50%;
+    height: 2px;
+    left: 50%;
+    top: 50%;
+    transform-origin: left center;
+    background: linear-gradient(90deg,#4deaff,transparent);
+    box-shadow: 0 0 12px #39eaff;
+    animation: scan 2.4s linear infinite;
+}
+
+@keyframes scan {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.radar::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 1px;
+    height: 100%;
+    background: rgba(53,220,255,.13);
+}
+
+.cross {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    border: 1px solid #55eaff;
+    border-radius: 50%;
+    transform: translate(-50%,-50%);
+}
+
+.target {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ffd45a;
+    box-shadow: 0 0 13px #ffd45a;
+    animation: blink 1s infinite alternate;
+}
+
+.t1 {
+    left: 68%;
+    top: 27%;
+}
+
+.t2 {
+    left: 28%;
+    top: 61%;
+    background: #ff6767;
+    box-shadow: 0 0 13px #ff6767;
+}
+
+.t3 {
+    left: 57%;
+    top: 72%;
+    background: #54ff9c;
+    box-shadow: 0 0 13px #54ff9c;
+}
+
+@keyframes blink {
+    from { opacity: .25; }
+    to { opacity: 1; }
+}
+
+.radar-label {
+    position: absolute;
+    bottom: 17px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #55dff5;
+}
+
+/* CAMERA */
+
+.camera {
+    position: absolute;
+    inset: 0;
+    display: none;
+
+    background:
+        linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.5)),
+        radial-gradient(circle at 50% 45%,#233b49,#08131b 65%,#02070b);
+}
+
+.camera.active {
+    display: block;
+}
+
+.camera-grid {
+    position: absolute;
+    inset: 0;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent 49.8%,
+            rgba(100,220,255,.16) 50%,
+            transparent 50.2%
+        ),
+        linear-gradient(
+            transparent 49.8%,
+            rgba(100,220,255,.16) 50%,
+            transparent 50.2%
+        );
+}
+
+.camera-noise {
+    position: absolute;
+    inset: 0;
+    opacity: .08;
+
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent 0px,
+            transparent 3px,
+            #fff 4px
+        );
+}
+
+.camera-info {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+
+    display: flex;
+    justify-content: space-between;
+
+    font-family: monospace;
+    font-size: 10px;
+    color: #68eaff;
+}
+
+.camera-bottom {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+
+    text-align: center;
+
+    font-family: monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #bcefff;
+}
+
+.cockpit {
+    position: absolute;
+    left: 50%;
+    bottom: -50px;
+
+    transform: translateX(-50%);
+
+    width: 70%;
+    height: 150px;
+
+    border-radius: 50% 50% 0 0;
+    border: 2px solid #395967;
+
+    background: #08151e;
+
+    box-shadow: 0 -20px 40px rgba(0,0,0,.5);
+}
+
+.cockpit::before,
+.cockpit::after {
+    content: "";
+
+    position: absolute;
+    bottom: 40px;
+
+    width: 2px;
+    height: 100px;
+
+    background: #416371;
+}
+
+.cockpit::before {
+    left: 20%;
+    transform: rotate(20deg);
+}
+
+.cockpit::after {
+    right: 20%;
+    transform: rotate(-20deg);
+}
+
+/* SPACECRAFT VIEW */
+
+.rocket-view {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%,-50%);
+
+    width: 105px;
+    height: 250px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #596a75,
+            #e9f0f2,
+            #596a75
+        );
+
+    border-radius: 50% 50% 18% 18%;
+
+    box-shadow:
+        0 0 35px rgba(100,220,255,.3);
+}
+
+.rocket-view::before {
+    content: "";
+
+    position: absolute;
+    left: -32px;
+    top: 105px;
+
+    width: 32px;
+    height: 80px;
+
+    border-radius: 50% 0 0 50%;
+
+    background: #243b48;
+
+    box-shadow:
+        137px 0 0 #243b48;
+}
+
+.rocket-view::after {
+    content: "";
+
+    position: absolute;
+    left: 50%;
+    bottom: -75px;
+
+    transform: translateX(-50%);
+
+    width: 38px;
+    height: 100px;
+
+    background:
+        linear-gradient(
+            #ffdd67,
+            #ff732e,
+            transparent
+        );
+
+    filter: blur(5px);
+}
+
+/* SWITCH */
+
+.switch-view {
+    position: absolute;
+    bottom: 45px;
+    right: 15px;
+
+    width: 155px;
+    height: 34px;
+
+    margin: 0;
+    z-index: 5;
+
+    font-size: 9px;
+}
+
+/* TELEMETRY */
+
+.telemetry {
+    height: 86px;
+
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 7px;
+
+    padding: 8px;
+}
+
+.data {
+    border: 1px solid #1d3b4c;
+    background: #061018;
+
+    padding: 9px;
+    border-radius: 4px;
+}
+
+.data small {
+    display: block;
+
+    color: #668b9b;
+
+    font-size: 8px;
+    letter-spacing: 1px;
+
+    margin-bottom: 7px;
+}
+
+.data strong {
+    font-size: 16px;
+    color: #c8f7ff;
+}
+
+/* RIGHT */
+
+.right {
+    padding: 11px;
+}
+
+.system {
+    margin-bottom: 14px;
+}
+
+.system-head {
+    display: flex;
+    justify-content: space-between;
+
+    font-size: 9px;
+    color: #7897a4;
+
+    margin-bottom: 6px;
+}
+
+.track {
+    height: 7px;
+
+    border: 1px solid #284657;
+    background: #040b10;
+
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.fill {
+    height: 100%;
+    width: 82%;
+
+    background: #36dfff;
+    box-shadow: 0 0 9px rgba(54,223,255,.6);
+
+    transition: width .5s;
+}
+
+.info {
+    border: 1px solid #244454;
+
+    padding: 11px;
+
+    font-size: 10px;
+    line-height: 1.9;
+
+    background: #050d14;
+}
+
+.info span {
+    color: #48e49d;
+}
+
+.info .fuel-warning {
+    color: #ffbd52;
+}
+
+.flight-state {
+    margin-top: 10px;
+
+    border: 1px solid #244454;
+
+    text-align: center;
+
+    padding: 14px 5px;
+
+    font-size: 12px;
+    letter-spacing: 2px;
+
+    color: #4ce3ff;
+}
+
+/* LOG */
+
+.log {
+    position: fixed;
+
+    bottom: 9px;
+    left: 235px;
+    right: 255px;
+
+    height: 25px;
+
+    border: 1px solid #1c3949;
+
+    background: rgba(2,8,12,.92);
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 10px;
+
+    color: #68aebd;
+
+    font-family: monospace;
+    font-size: 9px;
+}
+
+/* OVERLAY */
+
+.flight-overlay {
+    position: fixed;
+    inset: 0;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(0,120,170,.08),
+            rgba(0,0,0,.42)
+        );
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    z-index: 15;
+
+    pointer-events: none;
+
+    color: #64eaff;
+
+    font-family: monospace;
+    font-size: 15px;
+
+    letter-spacing: 4px;
+
+    text-shadow: 0 0 18px #31d9ff;
+}
+
+.flight-overlay.show {
+    display: flex;
+}
+
+/* COUNTDOWN */
+
+.countdown {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0,0,0,.76);
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    z-index: 20;
+}
+
+.countdown.show {
+    display: flex;
+}
+
+.count-number {
+    font-size: 110px;
+    font-weight: bold;
+
+    color: #55eaff;
+
+    text-shadow: 0 0 35px #23d8ff;
+}
+
+/* DESTINATION SCREEN */
+
+.destination-screen {
+    position: fixed;
+    inset: 0;
+
+    z-index: 100;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #102a39 0%,
+            #050c12 55%,
+            #010306 100%
+        );
+}
+
+.destination-screen.hidden {
+    display: none;
+}
+
+.destination-card {
+    width: min(520px,88vw);
+
+    border: 1px solid #2f667c;
+    background: rgba(4,13,20,.97);
+
+    box-shadow:
+        0 0 50px rgba(0,210,255,.12);
+
+    border-radius: 8px;
+
+    padding: 30px;
+}
+
+.destination-logo {
+    text-align: center;
+
+    font-size: 25px;
+    font-weight: bold;
+    letter-spacing: 5px;
+
+    margin-bottom: 8px;
+}
+
+.destination-logo span {
+    color: #31d9ff;
+}
+
+.destination-sub {
+    text-align: center;
+
+    color: #7897a4;
+
+    font-size: 9px;
+    letter-spacing: 3px;
+
+    margin-bottom: 30px;
+}
+
+.destination-card label {
+    display: block;
+
+    color: #65dff5;
+
+    font-size: 10px;
+    letter-spacing: 2px;
+
+    margin-bottom: 8px;
+}
+
+.destination-card select {
+    width: 100%;
+    height: 48px;
+
+    border: 1px solid #31596d;
+    border-radius: 5px;
+
+    background: #07141d;
+    color: #d9f8ff;
+
+    padding: 0 12px;
+
+    font-size: 12px;
+    font-weight: bold;
+
+    outline: none;
+}
+
+.destination-card select:focus {
+    border-color: #35dcff;
+    box-shadow: 0 0 15px rgba(0,210,255,.18);
+}
+
+.start-button {
+    margin-top: 18px;
+
+    height: 52px;
+
+    border-color: #3e765d;
+
+    color: #63ffae;
+
+    background:
+        linear-gradient(
+            #0b3023,
+            #061a14
+        );
+}
+
+.destination-info {
+    margin-top: 15px;
+
+    padding: 10px;
+
+    border: 1px solid #203e4d;
+
+    color: #6f929f;
+
+    font-size: 9px;
+
+    line-height: 1.7;
+
+    text-align: center;
+}
+
+/* WARNING */
+
+.warning {
+    position: fixed;
+    inset: 0;
+
+    z-index: 110;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(2,5,8,.88);
+}
+
+.warning.show {
+    display: flex;
+}
+
+.warning-box {
+    width: min(430px,85vw);
+
+    border: 1px solid #9b6f32;
+
+    background: #0a1117;
+
+    box-shadow:
+        0 0 40px rgba(255,150,40,.12);
+
+    padding: 25px;
+
+    text-align: center;
+}
+
+.warning-icon {
+    font-size: 45px;
+    margin-bottom: 10px;
+}
+
+.warning-title {
+    color: #ffcc65;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    letter-spacing: 2px;
+}
+
+.warning-text {
+    margin-top: 12px;
+
+    color: #a9c0ca;
+
+    font-size: 11px;
+    line-height: 1.8;
+}
+
+.warning button {
+    margin-top: 15px;
+    width: 180px;
+}
+
+/* MANUAL */
+
+.manual {
+    position: fixed;
+    inset: 0;
+
+    z-index: 120;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(0,0,0,.82);
+}
+
+.manual.show {
+    display: flex;
+}
+
+.manual-box {
+    width: min(700px,90vw);
+    max-height: 85vh;
+
+    overflow: auto;
+
+    border: 1px solid #31596d;
+
+    background: #071018;
+
+    padding: 25px;
+
+    border-radius: 7px;
+
+    box-shadow:
+        0 0 45px rgba(0,210,255,.13);
+}
+
+.manual-title {
+    color: #48e4ff;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    letter-spacing: 3px;
+
+    border-bottom: 1px solid #254658;
+
+    padding-bottom: 13px;
+
+    margin-bottom: 18px;
+}
+
+.manual-section {
+    margin-bottom: 18px;
+}
+
+.manual-section h3 {
+    color: #63eaff;
+
+    font-size: 11px;
+
+    letter-spacing: 2px;
+
+    margin-bottom: 7px;
+}
+
+.manual-section p,
+.manual-section li {
+    color: #9ab3bd;
+
+    font-size: 10px;
+
+    line-height: 1.8;
+}
+
+.manual-section ul {
+    padding-left: 18px;
+}
+
+.manual-close {
+    width: 180px;
+    display: block;
+    margin: 20px auto 0;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:850px) {
+
+    .main {
+        grid-template-columns:170px 1fr 180px;
+        gap:7px;
+        padding:7px;
+    }
+
+    .telemetry {
+        grid-template-columns:repeat(2,1fr);
+        height:120px;
+    }
+
+    .log {
+        left:180px;
+        right:195px;
+    }
+
+    button {
+        height:39px;
+        font-size:9px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- SPACE DESTINATION -->
+
+<div class="destination-screen" id="destinationScreen">
+
+<div class="destination-card">
+
+<div class="destination-logo">
+SPACE <span>COMMAND</span>
+</div>
+
+<div class="destination-sub">
+SPACECRAFT INITIALIZATION
+</div>
+
+<label for="destination">
+DESTINATION SEÇ
+</label>
+
+<select id="destination">
+
+    <option value="ORBITAL STATION">
+        ORBITAL STATION
+    </option>
+
+    <option value="LUNAR OUTPOST">
+        LUNAR OUTPOST
+    </option>
+
+    <option value="MARS RESEARCH BASE">
+        MARS RESEARCH BASE
+    </option>
+
+    <option value="DEEP SPACE GATE">
+        DEEP SPACE GATE
+    </option>
+
+    <option value="ASTEROID STATION">
+        ASTEROID STATION
+    </option>
+
+    <option value="NEBULA OUTPOST">
+        NEBULA OUTPOST
+    </option>
+
+</select>
+
+<button
+class="start-button"
+onclick="initializeFlight()">
+
+🛸 DESTINATION ONAYLA
+
+</button>
+
+<div class="destination-info">
+Uzay gemisi görev ekranını başlatmak için
+bir hedef seçin.
+</div>
+
+</div>
+
+</div>
+
+
+<!-- HEADER -->
+
+<header>
+
+<div class="logo">
+SPACE <span>COMMAND</span>
+</div>
+
+<div class="status">
+
+<div class="status-dot" id="statusDot"></div>
+
+<span id="systemStatus">
+SYSTEM ONLINE
+</span>
+
+</div>
+
+</header>
+
+
+<div class="main">
+
+<!-- SOL PANEL -->
+
+<section class="panel">
+
+<div class="title">
+SPACECRAFT CONTROLS
+</div>
+
+<div class="destination-box">
+
+<span class="destination-label">
+DESTINATION
+</span>
+
+<select
+class="destination-select"
+id="destinationPanel"
+onchange="changeDestination()">
+
+<option value="ORBITAL STATION">
+ORBITAL STATION
+</option>
+
+<option value="LUNAR OUTPOST">
+LUNAR OUTPOST
+</option>
+
+<option value="MARS RESEARCH BASE">
+MARS RESEARCH BASE
+</option>
+
+<option value="DEEP SPACE GATE">
+DEEP SPACE GATE
+</option>
+
+<option value="ASTEROID STATION">
+ASTEROID STATION
+</option>
+
+<option value="NEBULA OUTPOST">
+NEBULA OUTPOST
+</option>
+
+</select>
+
+</div>
+
+<div class="controls">
+
+<button class="launch" onclick="launchSequence()">
+🚀 LAUNCH
+</button>
+
+<button class="landing" onclick="landingSequence()">
+🛰 DOCK / LAND
+</button>
+
+<button class="fuel-button" onclick="refuel()">
+⛽ REFUEL SYSTEM
+</button>
+
+<button onclick="toggleRadar()" id="radarButton">
+📡 RADAR KAPAT
+</button>
+
+<button onclick="cameraChange()" id="cameraButton">
+🎥 CAMERA 1
+</button>
+
+<button onclick="signalScan()">
+📶 SCAN SIGNALS
+</button>
+
+<button onclick="systemCheck()">
+✓ SYSTEM CHECK
+</button>
+
+<button onclick="openManual()">
+📖 KULLANIM KILAVUZU
+</button>
+
+<button class="emergency" onclick="stopFlight()">
+■ UÇUŞU DURDUR
+</button>
+
+</div>
+
+</section>
+
+
+<!-- MERKEZ -->
+
+<section class="panel center">
+
+<div class="title">
+PRIMARY SPACECRAFT DISPLAY
+</div>
+
+<div class="display-area">
+
+<div class="radar scan" id="radar">
+
+<div class="cross"></div>
+
+<div class="target t1"></div>
+<div class="target t2"></div>
+<div class="target t3"></div>
+
+</div>
+
+<div class="radar-label" id="radarLabel">
+SPACE RADAR ONLINE // ACTIVE SENSOR
+</div>
+
+<button
+class="switch-view"
+onclick="showCamera()">
+🎥 KAMERAYA GEÇ
+</button>
+
+
+<div class="camera" id="camera">
+
+<div class="camera-grid"></div>
+
+<div class="camera-noise"></div>
+
+<div class="camera-info">
+
+<span id="cameraName">
+CAMERA 1 // COCKPIT
+</span>
+
+<span>
+REC ●
+</span>
+
+</div>
+
+<div class="cockpit" id="cockpit"></div>
+
+<div
+class="rocket-view"
+id="rocketView"
+style="display:none;">
+</div>
+
+<div class="camera-bottom" id="cameraBottom">
+COCKPIT VIEW
+</div>
+
+<button
+class="switch-view"
+onclick="showRadar()">
+📡 RADARA DÖN
+</button>
+
+</div>
+
+</div>
+
+
+<!-- TELEMETRY -->
+
+<div class="telemetry">
+
+<div class="data">
+
+<small>
+ALTITUDE
+</small>
+
+<strong id="altitude">
+0
+</strong> km
+
+</div>
+
+<div class="data">
+
+<small>
+VELOCITY
+</small>
+
+<strong id="velocity">
+0
+</strong> km/s
+
+</div>
+
+<div class="data">
+
+<small>
+FUEL
+</small>
+
+<strong id="fuel">
+100
+</strong> %
+
+</div>
+
+<div class="data">
+
+<small>
+MISSION TIME
+</small>
+
+<strong id="time">
+00:00
+</strong>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- SAĞ PANEL -->
+
+<section class="panel">
+
+<div class="title">
+SPACECRAFT MONITOR
+</div>
+
+<div class="right">
+
+<div class="system">
+
+<div class="system-head">
+
+<span>
+FUEL SYSTEM
+</span>
+
+<span id="fuelText">
+100%
+</span>
+
+</div>
+
+<div class="track">
+
+<div
+class="fill"
+id="fuelBar">
+</div>
+
+</div>
+
+</div>
+
+
+<div class="system">
+
+<div class="system-head">
+
+<span>
+COMMUNICATION
+</span>
+
+<span>
+98%
+</span>
+
+</div>
+
+<div class="track">
+
+<div
+class="fill"
+style="width:98%">
+</div>
+
+</div>
+
+</div>
+
+
+<div class="system">
+
+<div class="system-head">
+
+<span>
+THERMAL
+</span>
+
+<span id="thermalText">
+24%
+</span>
+
+</div>
+
+<div class="track">
+
+<div
+class="fill"
+id="thermalBar"
+style="width:24%">
+</div>
+
+</div>
+
+</div>
+
+
+<div class="info">
+
+DESTINATION<br>
+
+<span id="destinationInfo">
+ORBITAL STATION
+</span>
+
+<br>
+
+MISSION MODE<br>
+
+<span id="missionState">
+READY
+</span>
+
+<br>
+
+GUIDANCE<br>
+
+<span>
+AVAILABLE
+</span>
+
+<br>
+
+NAVIGATION<br>
+
+<span>
+STANDBY
+</span>
+
+<br>
+
+RADAR<br>
+
+<span id="radarState">
+ONLINE
+</span>
+
+<br>
+
+FUEL STATUS<br>
+
+<span id="fuelRisk">
+NORMAL
+</span>
+
+</div>
+
+
+<div class="flight-state" id="flightState">
+READY
+</div>
+
+</div>
+
+</section>
+
+</div>
+
+
+<div class="log" id="log">
+> SPACECRAFT CONTROL SYSTEM READY
+</div>
+
+
+<div class="flight-overlay" id="overlay">
+SPACECRAFT ACTIVE
+</div>
+
+
+<!-- COUNTDOWN -->
+
+<div class="countdown" id="countdown">
+
+<div class="count-number" id="countNumber">
+5
+</div>
+
+</div>
+
+
+<!-- WARNING -->
+
+<div class="warning" id="warning">
+
+<div class="warning-box">
+
+<div class="warning-icon">
+⚠️
+</div>
+
+<div class="warning-title" id="warningTitle">
+SYSTEM WARNING
+</div>
+
+<div class="warning-text" id="warningText">
+Sistem kontrolünde bir uyarı algılandı.
+</div>
+
+<button onclick="closeWarning()">
+UYARIYI KAPAT
+</button>
+
+</div>
+
+</div>
+
+
+<!-- MANUAL -->
+
+<div class="manual" id="manual">
+
+<div class="manual-box">
+
+<div class="manual-title">
+📖 SPACECRAFT KULLANIM KILAVUZU
+</div>
+
+
+<div class="manual-section">
+
+<h3>1 — DESTINATION</h3>
+
+<p>
+Görev başlamadan önce hedef ekranından bir uzay hedefi seç.
+Seçilen hedef sağ panelde gösterilir.
+</p>
+
+</div>
+
+
+<div class="manual-section">
+
+<h3>2 — LAUNCH</h3>
+
+<p>
+LAUNCH düğmesine basıldığında geri sayım başlar.
+Geri sayım tamamlandığında uzay gemisinin uçuş ekranı aktif olur.
+</p>
+
+</div>
+
+
+<div class="manual-section">
+
+<h3>3 — SPACE RADAR</h3>
+
+<p>
+Radar uzaydaki kurgu nesneleri ve hedefleri görsel olarak
+tarayan bir sensör ekranıdır. Radar düğmesi taramayı açıp kapatır.
+</p>
+
+</div>
+
+
+<div class="manual-section">
+
+<h3>4 — CAMERA</h3>
+
+<p>
+KAMERA düğmesi farklı uzay gemisi kamera görünümleri arasında geçiş yapar.
+KAMERA 1 kokpit, KAMERA 2 dış görünüm,
+KAMERA 3 takip görünümüdür.
+</p>
+
+</div>
+
+
+<div class="manual-section">
+
+<h3>5 — CRUISE</h3>
+
+<p>
+Uzay gemisi görev uçuşuna geçtiğinde CRUISE durumuna ulaşır.
+Bu aşamada yakıt göstergesi yavaşça azalır.
+</p>
+
+</div>
+
+
+<div class="manual-section">
+
+<h3>6 — FUEL</h3>
+
+<p>
+REFUEL SYSTEM düğmesi kurgu yakıt göstergesini tekrar %100'e getirir.
+Yakıt seviyesi düştükçe sağ paneldeki durum değişir.
+</p>
+
+</div>
+
+
+<div class="manual-section">
+
+<h3>7 — DOCK / LAND</h3>
+
+<p>
+DOCK / LAND düğmesi aktif görevi hedefe yaklaşma ve iniş
+aşamasına geçirir. İrtifa ve hız kademeli olarak azalır.
+</p>
+
+</div>
+
+
+<div class="manual-section">
+
+<h3>8 — SYSTEM CHECK</h3>
+
+<p>
+SYSTEM CHECK düğmesi uzay gemisinin arayüzdeki sistem
+durumlarını kontrol eder ve sonuçları alt log bölümünde gösterir.
+</p>
+
+</div>
+
+
+<button
+class="manual-close"
+onclick="closeManual()">
+KILAVUZU KAPAT
+</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =================================================
+   SES
+================================================= */
+
+let audioContext = null;
+let engineOsc = null;
+let engineGain = null;
+
+
+function initAudio() {
+
+    if (!audioContext) {
+
+        audioContext =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+    }
+
+    if (audioContext.state === "suspended") {
+        audioContext.resume();
+    }
+}
+
+
+function beep(
+    frequency,
+    duration,
+    type = "sine",
+    volume = .05
+) {
+
+    initAudio();
+
+    const oscillator =
+        audioContext.createOscillator();
+
+    const gain =
+        audioContext.createGain();
+
+    oscillator.type = type;
+
+    oscillator.frequency.value =
+        frequency;
+
+    gain.gain.setValueAtTime(
+        volume,
+        audioContext.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        .001,
+        audioContext.currentTime + duration
+    );
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    oscillator.start();
+
+    oscillator.stop(
+        audioContext.currentTime + duration
+    );
+}
+
+
+function warningSound() {
+
+    beep(650,.15,"square",.06);
+
+    setTimeout(() => {
+        beep(450,.15,"square",.06);
+    },180);
+}
+
+
+function engineStart() {
+
+    initAudio();
+
+    if (engineOsc)
+        return;
+
+    engineOsc =
+        audioContext.createOscillator();
+
+    engineGain =
+        audioContext.createGain();
+
+    engineOsc.type = "sawtooth";
+
+    engineOsc.frequency.value = 55;
+
+    engineGain.gain.value = .001;
+
+    engineOsc.connect(engineGain);
+    engineGain.connect(audioContext.destination);
+
+    engineOsc.start();
+
+    engineGain.gain.exponentialRampToValueAtTime(
+        .12,
+        audioContext.currentTime + 2
+    );
+}
+
+
+function engineStop() {
+
+    if (!engineOsc)
+        return;
+
+    engineGain.gain.exponentialRampToValueAtTime(
+        .001,
+        audioContext.currentTime + .7
+    );
+
+    setTimeout(() => {
+
+        if (engineOsc) {
+
+            engineOsc.stop();
+
+            engineOsc = null;
+            engineGain = null;
+
+        }
+
+    },800);
+}
+
+
+function landingSound() {
+
+    initAudio();
+
+    beep(180,.35,"triangle",.08);
+
+    setTimeout(() => {
+        beep(240,.25,"triangle",.07);
+    },220);
+
+    setTimeout(() => {
+        beep(700,.12,"sine",.04);
+    },500);
+
+    setTimeout(() => {
+        beep(900,.18,"sine",.05);
+    },750);
+}
+
+
+/* =================================================
+   DEĞİŞKENLER
+================================================= */
+
+let radarOn = true;
+let cameraVisible = false;
+
+let flightRunning = false;
+let cruiseMode = false;
+
+let flightSeconds = 0;
+
+let altitude = 0;
+let velocity = 0;
+let fuel = 100;
+
+let flightInterval = null;
+let cruiseFuelInterval = null;
+
+let cameraNumber = 1;
+
+let selectedDestination = "ORBITAL STATION";
+
+
+/* =================================================
+   DESTINATION
+================================================= */
+
+function initializeFlight() {
+
+    const selected =
+        document.getElementById(
+            "destination"
+        ).value;
+
+    selectedDestination = selected;
+
+    document.getElementById(
+        "destinationPanel"
+    ).value =
+        selected;
+
+    document.getElementById(
+        "destinationInfo"
+    ).innerText =
+        selected;
+
+    document.getElementById(
+        "destinationScreen"
+    ).classList.add(
+        "hidden"
+    );
+
+    log(
+        "DESTINATION SET // " +
+        selected
+    );
+
+    beep(800,.1);
+}
+
+
+function changeDestination() {
+
+    if (flightRunning) {
+
+        log(
+            "DESTINATION LOCKED DURING MISSION"
+        );
+
+        document.getElementById(
+            "destinationPanel"
+        ).value =
+            selectedDestination;
+
+        warningSound();
+
+        return;
+    }
+
+    selectedDestination =
+        document.getElementById(
+            "destinationPanel"
+        ).value;
+
+    document.getElementById(
+        "destination"
+    ).value =
+        selectedDestination;
+
+    document.getElementById(
+        "destinationInfo"
+    ).innerText =
+        selectedDestination;
+
+    log(
+        "DESTINATION SET // " +
+        selectedDestination
+    );
+
+    beep(800,.08);
+}
+
+
+/* =================================================
+   LOG
+================================================= */
+
+function log(text) {
+
+    document.getElementById(
+        "log"
+    ).innerText =
+        "> " + text;
+}
+
+
+/* =================================================
+   RADAR
+================================================= */
+
+function toggleRadar() {
+
+    radarOn = !radarOn;
+
+    const radar =
+        document.getElementById("radar");
+
+    const button =
+        document.getElementById("radarButton");
+
+
+    if (radarOn) {
+
+        radar.classList.add("scan");
+
+        button.innerText =
+            "📡 RADAR KAPAT";
+
+        button.classList.add("active");
+
+        document.getElementById(
+            "radarState"
+        ).innerText =
+            "ONLINE";
+
+        document.getElementById(
+            "radarLabel"
+        ).innerText =
+            "SPACE RADAR ONLINE // ACTIVE SENSOR";
+
+        log("SPACE RADAR ACTIVATED");
+
+        beep(850,.1);
+
+    } else {
+
+        radar.classList.remove("scan");
+
+        button.innerText =
+            "📡 RADAR AÇ";
+
+        button.classList.remove("active");
+
+        document.getElementById(
+            "radarState"
+        ).innerText =
+            "OFFLINE";
+
+        document.getElementById(
+            "radarLabel"
+        ).innerText =
+            "SPACE RADAR OFFLINE";
+
+        log("SPACE RADAR DEACTIVATED");
+
+        beep(350,.15);
+    }
+}
+
+
+/* =================================================
+   KAMERA
+================================================= */
+
+function showCamera() {
+
+    cameraVisible = true;
+
+    document.getElementById(
+        "camera"
+    ).classList.add("active");
+
+    document.getElementById(
+        "radar"
+    ).style.display =
+        "none";
+
+    document.getElementById(
+        "radarLabel"
+    ).style.display =
+        "none";
+
+    log("SPACECRAFT CAMERA ACTIVATED");
+
+    beep(800,.08);
+}
+
+
+function showRadar() {
+
+    cameraVisible = false;
+
+    document.getElementById(
+        "camera"
+    ).classList.remove("active");
+
+    document.getElementById(
+        "radar"
+    ).style.display =
+        "block";
+
+    document.getElementById(
+        "radarLabel"
+    ).style.display =
+        "block";
+
+    log("RETURNED TO SPACE RADAR");
+
+    beep(650,.08);
+}
+
+
+function cameraChange() {
+
+    showCamera();
+
+    cameraNumber++;
+
+    if (cameraNumber > 3)
+        cameraNumber = 1;
+
+    const name =
+        document.getElementById("cameraName");
+
+    const bottom =
+        document.getElementById("cameraBottom");
+
+    const cockpit =
+        document.getElementById("cockpit");
+
+    const rocket =
+        document.getElementById("rocketView");
+
+
+    if (cameraNumber === 1) {
+
+        name.innerText =
+            "CAMERA 1 // COCKPIT";
+
+        bottom.innerText =
+            "COCKPIT VIEW";
+
+        cockpit.style.display =
+            "block";
+
+        rocket.style.display =
+            "none";
+    }
+
+
+    if (cameraNumber === 2) {
+
+        name.innerText =
+            "CAMERA 2 // EXTERIOR";
+
+        bottom.innerText =
+            "SPACECRAFT EXTERIOR";
+
+        cockpit.style.display =
+            "none";
+
+        rocket.style.display =
+            "block";
+    }
+
+
+    if (cameraNumber === 3) {
+
+        name.innerText =
+            "CAMERA 3 // TRACKING";
+
+        bottom.innerText =
+            "SPACECRAFT TRACKING";
+
+        cockpit.style.display =
+            "none";
+
+        rocket.style.display =
+            "block";
+    }
+
+
+    document.getElementById(
+        "cameraButton"
+    ).innerText =
+        "🎥 CAMERA " +
+        cameraNumber;
+
+    log(
+        "CAMERA " +
+        cameraNumber +
+        " SELECTED"
+    );
+
+    beep(800,.08);
+}
+
+
+/* =================================================
+   YAKIT
+================================================= */
+
+function refuel() {
+
+    initAudio();
+
+    fuel = 100;
+
+    updateDisplay();
+
+    document.getElementById(
+        "fuelRisk"
+    ).innerText =
+        "NORMAL";
+
+    document.getElementById(
+        "fuelRisk"
+    ).classList.remove(
+        "fuel-warning"
+    );
+
+    log(
+        "FUEL SYSTEM // 100%"
+    );
+
+    beep(350,.12);
+
+    setTimeout(() => {
+        beep(550,.15);
+    },150);
+}
+
+
+/* =================================================
+   LAUNCH
+================================================= */
+
+function launchSequence() {
+
+    if (flightRunning)
+        return;
+
+    initAudio();
+
+    if (!selectedDestination) {
+
+        showWarning(
+            "DESTINATION REQUIRED",
+            "Lütfen önce bir uzay hedefi seçin."
+        );
+
+        return;
+    }
+
+    flightRunning = true;
+    cruiseMode = false;
+
+    fuel = 100;
+
+    const countdown =
+        document.getElementById(
+            "countdown"
+        );
+
+    const number =
+        document.getElementById(
+            "countNumber"
+        );
+
+    countdown.classList.add("show");
+
+    let count = 5;
+
+    number.innerText = count;
+
+    beep(
+        500,
+        .12,
+        "square",
+        .06
+    );
+
+
+    const timer =
+        setInterval(() => {
+
+            count--;
+
+            if (count > 0) {
+
+                number.innerText =
+                    count;
+
+                warningSound();
+
+            } else {
+
+                clearInterval(timer);
+
+                countdown.classList.remove(
+                    "show"
+                );
+
+                startFlight();
+
+            }
+
+        },1000);
+}
+
+
+/* =================================================
+   SPACE FLIGHT
+================================================= */
+
+function startFlight() {
+
+    flightSeconds = 0;
+
+    altitude = 0;
+
+    velocity = 0;
+
+    document.getElementById(
+        "flightState"
+    ).innerText =
+        "🚀 ASCENT";
+
+    document.getElementById(
+        "missionState"
+    ).innerText =
+        "ASCENT";
+
+    document.getElementById(
+        "systemStatus"
+    ).innerText =
+        "MISSION ACTIVE";
+
+    document.getElementById(
+        "overlay"
+    ).innerText =
+        "SPACECRAFT TO " +
+        selectedDestination;
+
+    document.getElementById(
+        "overlay"
+    ).classList.add("show");
+
+    log(
+        "MISSION STARTED // DESTINATION " +
+        selectedDestination
+    );
+
+    engineStart();
+
+    document.body.classList.add(
+        "shake-heavy"
+    );
+
+
+    flightInterval =
+        setInterval(() => {
+
+            altitude +=
+                Math.floor(
+                    120 +
+                    Math.random() * 90
+                );
+
+            velocity +=
+                Math.floor(
+                    90 +
+                    Math.random() * 45
+                );
+
+            fuel -= .45;
+
+
+            if (velocity > 2840)
+                velocity = 2840;
+
+            if (fuel < 0)
+                fuel = 0;
+
+
+            updateDisplay();
+
+
+            if (altitude > 12400) {
+
+                clearInterval(
+                    flightInterval
+                );
+
+                flightInterval = null;
+
+                document.body.classList.remove(
+                    "shake-heavy"
+                );
+
+                document.body.classList.add(
+                    "shake-light"
+                );
+
+                document.getElementById(
+                    "flightState"
+                ).innerText =
+                    "CRUISE";
+
+                document.getElementById(
+                    "missionState"
+                ).innerText =
+                    "CRUISE";
+
+                log(
+                    "SPACE CRUISE REACHED // " +
+                    selectedDestination
+                );
+
+                engineStop();
+
+                setTimeout(() => {
+
+                    document.body.classList.remove(
+                        "shake-light"
+                    );
+
+                },3000);
+
+
+                startCruiseFuel();
+            }
+
+        },500);
+}
+
+
+/* =================================================
+   CRUISE YAKIT
+================================================= */
+
+function startCruiseFuel() {
+
+    if (cruiseFuelInterval)
+        clearInterval(
+            cruiseFuelInterval
+        );
+
+    cruiseMode = true;
+
+
+    cruiseFuelInterval =
+        setInterval(() => {
+
+            if (!cruiseMode)
+                return;
+
+            /*
+               Kurgu uzay gemisi cruise yakıt sistemi.
+               Yakıt yavaşça azalır.
+            */
+
+            fuel -= .18;
+
+            if (fuel < 0)
+                fuel = 0;
+
+            updateDisplay();
+
+
+            if (fuel <= 0) {
+
+                clearInterval(
+                    cruiseFuelInterval
+                );
+
+                cruiseFuelInterval = null;
+
+                cruiseMode = false;
+
+                document.getElementById(
+                    "flightState"
+                ).innerText =
+                    "FUEL EMPTY";
+
+                document.getElementById(
+                    "missionState"
+                ).innerText =
+                    "FUEL WARNING";
+
+                document.getElementById(
+                    "systemStatus"
+                ).innerText =
+                    "FUEL WARNING";
+
+                log(
+                    "CRUISE FUEL DEPLETED"
+                );
+
+                warningSound();
+
+                showWarning(
+                    "FUEL WARNING",
+                    "Cruise sırasında yakıt seviyesi tükendi."
+                );
+            }
+
+        },3000);
+}
+
+
+/* =================================================
+   DOCK / LAND
+================================================= */
+
+function landingSequence() {
+
+    if (
+        !flightRunning &&
+        altitude === 0
+    ) {
+
+        log(
+            "NO ACTIVE MISSION"
+        );
+
+        warningSound();
+
+        showWarning(
+            "NO ACTIVE MISSION",
+            "Dock / Land başlatmak için aktif bir görev bulunmalıdır."
+        );
+
+        return;
+    }
+
+
+    if (flightInterval)
+        clearInterval(
+            flightInterval
+        );
+
+    if (cruiseFuelInterval)
+        clearInterval(
+            cruiseFuelInterval
+        );
+
+    flightInterval = null;
+    cruiseFuelInterval = null;
+
+    cruiseMode = false;
+    flightRunning = false;
+
+
+    document.getElementById(
+        "flightState"
+    ).innerText =
+        "🛰 DOCKING";
+
+    document.getElementById(
+        "missionState"
+    ).innerText =
+        "DOCKING";
+
+    document.getElementById(
+        "systemStatus"
+    ).innerText =
+        "DOCKING";
+
+    document.getElementById(
+        "overlay"
+    ).innerText =
+        "DOCKING // " +
+        selectedDestination;
+
+    document.getElementById(
+        "overlay"
+    ).classList.add(
+        "show"
+    );
+
+    log(
+        "DOCKING SEQUENCE // " +
+        selectedDestination
+    );
+
+    warningSound();
+
+    document.body.classList.add(
+        "shake-light"
+    );
+
+
+    let landingTimer =
+        setInterval(() => {
+
+            altitude -=
+                Math.floor(
+                    180 +
+                    Math.random() * 130
+                );
+
+            velocity -=
+                Math.floor(
+                    100 +
+                    Math.random() * 80
+                );
+
+            if (altitude < 0)
+                altitude = 0;
+
+            if (velocity < 0)
+                velocity = 0;
+
+            updateDisplay();
+
+
+            if (altitude === 0) {
+
+                clearInterval(
+                    landingTimer
+                );
+
+                document.body.classList.remove(
+                    "shake-light"
+                );
+
+                document.getElementById(
+                    "flightState"
+                ).innerText =
+                    "DOCKED";
+
+                document.getElementById(
+                    "missionState"
+                ).innerText =
+                    "COMPLETE";
+
+                document.getElementById(
+                    "systemStatus"
+                ).innerText =
+                    "SYSTEM ONLINE";
+
+                document.getElementById(
+                    "overlay"
+                ).classList.remove(
+                    "show"
+                );
+
+                log(
+                    "DOCKING COMPLETE // " +
+                    selectedDestination
+                );
+
+                landingSound();
+
+                flightRunning = false;
+
+                engineStop();
+            }
+
+        },600);
+}
+
+
+/* =================================================
+   UYARI
+================================================= */
+
+function showWarning(title,text) {
+
+    document.getElementById(
+        "warningTitle"
+    ).innerText =
+        title;
+
+    document.getElementById(
+        "warningText"
+    ).innerText =
+        text;
+
+    document.getElementById(
+        "warning"
+    ).classList.add(
+        "show"
+    );
+}
+
+
+function closeWarning() {
+
+    document.getElementById(
+        "warning"
+    ).classList.remove(
+        "show"
+    );
+
+    beep(800,.08);
+}
+
+
+/* =================================================
+   DISPLAY
+================================================= */
+
+function updateDisplay() {
+
+    document.getElementById(
+        "altitude"
+    ).innerText =
+        Math.floor(
+            altitude
+        ).toLocaleString();
+
+
+    document.getElementById(
+        "velocity"
+    ).innerText =
+        Math.floor(
+            velocity
+        ).toLocaleString();
+
+
+    document.getElementById(
+        "fuel"
+    ).innerText =
+        Math.floor(
+            fuel
+        );
+
+
+    document.getElementById(
+        "fuelText"
+    ).innerText =
+        Math.floor(
+            fuel
+        ) + "%";
+
+
+    document.getElementById(
+        "fuelBar"
+    ).style.width =
+        fuel + "%";
+
+
+    const risk =
+        document.getElementById(
+            "fuelRisk"
+        );
+
+
+    if (fuel > 50) {
+
+        risk.innerText =
+            "NORMAL";
+
+        risk.classList.remove(
+            "fuel-warning"
+        );
+
+    } else if (fuel > 25) {
+
+        risk.innerText =
+            "MEDIUM";
+
+        risk.classList.add(
+            "fuel-warning"
+        );
+
+    } else if (fuel > 10) {
+
+        risk.innerText =
+            "HIGH";
+
+        risk.classList.add(
+            "fuel-warning"
+        );
+
+    } else {
+
+        risk.innerText =
+            "CRITICAL";
+
+        risk.classList.add(
+            "fuel-warning"
+        );
+    }
+
+
+    const thermal =
+        Math.min(
+            95,
+            24 + velocity / 60
+        );
+
+
+    document.getElementById(
+        "thermalText"
+    ).innerText =
+        Math.floor(
+            thermal
+        ) + "%";
+
+
+    document.getElementById(
+        "thermalBar"
+    ).style.width =
+        thermal + "%";
+}
+
+
+/* =================================================
+   SIGNAL SCAN
+================================================= */
+
+function signalScan() {
+
+    log(
+        "SCANNING SPACE SIGNALS..."
+    );
+
+    beep(700,.1);
+
+
+    setTimeout(() => {
+
+        log(
+            "SIGNAL 01 DETECTED // RANGE 4.8 AU"
+        );
+
+        beep(900,.08);
+
+    },700);
+
+
+    setTimeout(() => {
+
+        log(
+            "SIGNAL 02 DETECTED // RANGE 8.2 AU"
+        );
+
+        beep(1000,.08);
+
+    },1400);
+
+
+    setTimeout(() => {
+
+        log(
+            "SCAN COMPLETE // 2 OBJECTS"
+        );
+
+    },2100);
+}
+
+
+/* =================================================
+   SYSTEM CHECK
+================================================= */
+
+function systemCheck() {
+
+    log(
+        "SPACECRAFT DIAGNOSTIC RUNNING..."
+    );
+
+    beep(700,.1);
+
+
+    setTimeout(() => {
+        log("SPACECRAFT SYSTEM // NOMINAL");
+    },500);
+
+
+    setTimeout(() => {
+        log("NAVIGATION // NOMINAL");
+    },1000);
+
+
+    setTimeout(() => {
+        log("COMMUNICATION // NOMINAL");
+    },1500);
+
+
+    setTimeout(() => {
+
+        log(
+            "RADAR // " +
+            (
+                radarOn
+                ? "ONLINE"
+                : "OFFLINE"
+            )
+        );
+
+    },2000);
+
+
+    setTimeout(() => {
+
+        log(
+            "FUEL // " +
+            Math.floor(fuel) +
+            "%"
+        );
+
+    },2400);
+
+
+    setTimeout(() => {
+
+        log(
+            "DESTINATION // " +
+            selectedDestination
+        );
+
+    },2700);
+
+
+    setTimeout(() => {
+
+        log(
+            "DIAGNOSTIC COMPLETE"
+        );
+
+        beep(1000,.15);
+
+    },3200);
+}
+
+
+/* =================================================
+   DURDUR
+================================================= */
+
+function stopFlight() {
+
+    if (flightInterval)
+        clearInterval(
+            flightInterval
+        );
+
+    if (cruiseFuelInterval)
+        clearInterval(
+            cruiseFuelInterval
+        );
+
+    flightInterval = null;
+    cruiseFuelInterval = null;
+
+    cruiseMode = false;
+    flightRunning = false;
+
+
+    document.body.classList.remove(
+        "shake-light"
+    );
+
+    document.body.classList.remove(
+        "shake-heavy"
+    );
+
+
+    document.getElementById(
+        "overlay"
+    ).classList.remove(
+        "show"
+    );
+
+
+    document.getElementById(
+        "flightState"
+    ).innerText =
+        "STOPPED";
+
+
+    document.getElementById(
+        "missionState"
+    ).innerText =
+        "STANDBY";
+
+
+    document.getElementById(
+        "systemStatus"
+    ).innerText =
+        "SYSTEM STANDBY";
+
+
+    log(
+        "SPACECRAFT CONTROL STOPPED"
+    );
+
+    warningSound();
+
+    engineStop();
+}
+
+
+/* =================================================
+   MANUAL
+================================================= */
+
+function openManual() {
+
+    document.getElementById(
+        "manual"
+    ).classList.add(
+        "show"
+    );
+
+    beep(700,.08);
+}
+
+
+function closeManual() {
+
+    document.getElementById(
+        "manual"
+    ).classList.remove(
+        "show"
+    );
+
+    beep(500,.08);
+}
+
+
+/* =================================================
+   MISSION TIME
+================================================= */
+
+setInterval(() => {
+
+    if (flightRunning) {
+
+        flightSeconds++;
+
+        let minutes =
+            Math.floor(
+                flightSeconds / 60
+            )
+            .toString()
+            .padStart(2,"0");
+
+        let seconds =
+            (
+                flightSeconds % 60
+            )
+            .toString()
+            .padStart(2,"0");
+
+        document.getElementById(
+            "time"
+        ).innerText =
+            minutes +
+            ":" +
+            seconds;
+    }
+
+},1000);
+
+
+/* =================================================
+   BAŞLANGIÇ
+================================================= */
+
+document.getElementById(
+    "radarButton"
+).classList.add(
+    "active"
+);
+
+updateDisplay();
+
+</script>
+
+</body>
+</html>
